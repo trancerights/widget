@@ -207,6 +207,7 @@
     text-transform: uppercase;
     color: var(--text-muted);
     transition: color 0.4s;
+    padding-right: 8px;
   }
 
   .status-text.online {
@@ -289,12 +290,12 @@
 
     const online = !stale && bpm != null;
     textEl.classList.toggle('online', online);
-    textEl.textContent = online ? 'online  ' : 'offline  ';
+    textEl.textContent = online ? 'online' : 'offline';
   }
 
   function setOffline() {
     textEl.classList.remove('online');
-    textEl.textContent = 'offline  ';
+    textEl.textContent = 'offline';
     bpmEl.classList.add('stale');
   }
 
