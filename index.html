@@ -21,6 +21,7 @@
     --green: #4ade80;
     --amber: #fbbf24;
     --red: #f87171;
+    --blue: #60a5fa;
     --offline: rgba(240,240,240,0.2);
     --radius: 20px;
     --stress-color: var(--amber);
@@ -41,13 +42,23 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 24px 24px 18px;
+    padding: 24px 24px 18px 28px;
     position: relative;
     box-shadow:
       0 0 0 1px rgba(255,255,255,0.03),
       0 8px 40px rgba(0,0,0,0.6);
     overflow: hidden;
     user-select: none;
+  }
+
+  .zone-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--blue);
+    transition: background 0.5s ease;
   }
 
   .card::before {
@@ -206,6 +217,7 @@
 </head>
 <body>
 <div class="card">
+  <div class="zone-bar" id="zoneBar"></div>
   <div class="pulse-ring" id="pulseRing"></div>
 
   <div class="bpm-row">
@@ -247,8 +259,16 @@
   const dotEl     = document.getElementById('statusDot');
   const textEl    = document.getElementById('statusText');
   const ringEl    = document.getElementById('pulseRing');
+  const zoneEl    = document.getElementById('zoneBar');
 
   let staleTimer = null;
+
+  function bpmZoneColor(bpm) {
+    if (bpm >= 140) return 'var(--red)';
+    if (bpm >= 120) return 'var(--amber)';
+    if (bpm >= 95)  return 'var(--green)';
+    return 'var(--blue)';
+  }
 
   function hrvColor(hrv) {
     if (hrv > 50) return 'var(--green)';
@@ -270,6 +290,10 @@
     if (!stale) triggerPulse();
     bpmEl.textContent = bpm ?? '--';
     bpmEl.classList.toggle('stale', stale);
+
+    if (bpm != null) {
+      zoneEl.style.background = bpmZoneColor(bpm);
+    }
 
     if (hrv != null) {
       const color = hrvColor(hrv);
