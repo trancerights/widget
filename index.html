@@ -89,22 +89,13 @@
     font-family: 'Seagram', serif;
     font-size: 88px;
     letter-spacing: -1px;
-    color: var(--text-primary);
+    color: #ffffff;
     transition: opacity 0.2s;
     line-height: 0.9;
-    min-width: 180px;
   }
 
   .bpm-number.stale {
     opacity: 0.3;
-  }
-
-  .zone-underline {
-    height: 3px;
-    background: var(--blue);
-    margin-top: 8px;
-    transition: background 0.5s ease, width 0.3s ease;
-    width: 0;
   }
 
   .divider {
@@ -120,6 +111,7 @@
   }
 
   .stress-label {
+    font-family: 'DM Sans', sans-serif;
     font-size: 10px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -133,7 +125,7 @@
   }
 
   .stress-score {
-    font-family: 'Seagram', serif;
+    font-family: 'DM Sans', sans-serif;
     font-size: 28px;
     color: var(--stress-color);
     letter-spacing: 0.5px;
@@ -186,6 +178,7 @@
   }
 
   .status-text {
+    font-family: 'DM Sans', sans-serif;
     font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -217,8 +210,8 @@
   </div>
 
   <div class="status-row">
-    <div class="pulse-ring" id="pulseRing"></div>
     <div class="status-text" id="statusText">offline</div>
+    <div class="pulse-ring" id="pulseRing"></div>
   </div>
 </div>
 
@@ -233,16 +226,8 @@
   const stressBar = document.getElementById('stressBar');
   const textEl    = document.getElementById('statusText');
   const ringEl    = document.getElementById('pulseRing');
-  const zoneEl    = document.getElementById('zoneUnderline');
 
   let staleTimer = null;
-
-  function bpmZoneColor(bpm) {
-    if (bpm >= 140) return 'var(--red)';
-    if (bpm >= 120) return 'var(--amber)';
-    if (bpm >= 95)  return 'var(--green)';
-    return 'var(--blue)';
-  }
 
   function hrvColor(hrv) {
     if (hrv > 50) return 'var(--green)';
@@ -264,11 +249,6 @@
     if (!stale) triggerPulse();
     bpmEl.textContent = bpm ?? '--';
     bpmEl.classList.toggle('stale', stale);
-
-    if (bpm != null) {
-      zoneEl.style.background = bpmZoneColor(bpm);
-      zoneEl.style.width = bpmEl.offsetWidth + 'px';
-    }
 
     if (hrv != null) {
       const color = hrvColor(hrv);
