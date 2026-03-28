@@ -125,7 +125,7 @@
   }
 
   .stress-score {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Seagram', serif;
     font-size: 28px;
     color: var(--stress-color);
     letter-spacing: 0.5px;
@@ -177,6 +177,29 @@
     100% { opacity: 0;   transform: scale(2); }
   }
 
+  .bpm-heart {
+    position: absolute;
+    top: 28px;
+    right: 24px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .bpm-heart svg {
+    width: 18px;
+    height: 18px;
+    fill: var(--text-muted);
+    animation: heart-beat 1s ease-in-out infinite;
+  }
+
+  @keyframes heart-beat {
+    0%, 100% { transform: scale(1); fill: var(--text-muted); }
+    15% { transform: scale(1.15); fill: rgba(248,113,113,0.5); }
+    30% { transform: scale(1); fill: var(--text-muted); }
+    45% { transform: scale(1.1); fill: rgba(248,113,113,0.4); }
+    60% { transform: scale(1); fill: var(--text-muted); }
+  }
+
   .status-text {
     font-family: 'DM Sans', sans-serif;
     font-size: 10px;
@@ -193,6 +216,11 @@
 </head>
 <body>
 <div class="card">
+  <div class="bpm-heart">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </svg>
+  </div>
   <div class="bpm-row">
     <div class="bpm-number" id="bpmNum">--</div>
   </div>
@@ -261,12 +289,12 @@
 
     const online = !stale && bpm != null;
     textEl.classList.toggle('online', online);
-    textEl.textContent = online ? 'online' : 'offline';
+    textEl.textContent = online ? 'online  ' : 'offline  ';
   }
 
   function setOffline() {
     textEl.classList.remove('online');
-    textEl.textContent = 'offline';
+    textEl.textContent = 'offline  ';
     bpmEl.classList.add('stale');
   }
 
