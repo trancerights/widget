@@ -269,10 +269,8 @@
     const stress = data.hrv != null ? hrvToStress(data.hrv) : null;
     const stale  = data.stale === true;
 
-    if (bpm !== lastBpm) {
-      if (!stale) triggerPulse();
-      lastBpm = bpm;
-    }
+    if (!stale) triggerPulse();
+    lastBpm = bpm;
     bpmEl.textContent = bpm ?? '--';
     bpmEl.classList.toggle('stale', stale);
 
