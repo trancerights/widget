@@ -62,22 +62,20 @@
 
   .pulse-ring {
     position: absolute;
-    top: 28px;
-    right: 24px;
-    width: 8px;
-    height: 8px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: var(--green);
     opacity: 0;
   }
 
   .pulse-ring.active {
-    animation: ring-out 0.7s ease-out;
+    animation: ring-out 0.5s ease-out;
   }
 
   @keyframes ring-out {
     0%   { opacity: 0.9; transform: scale(1); }
-    100% { opacity: 0;   transform: scale(3.5); }
+    100% { opacity: 0;   transform: scale(2); }
   }
 
   .bpm-row {
@@ -103,33 +101,10 @@
 
   .zone-underline {
     height: 3px;
-    border-radius: 99px;
     background: var(--blue);
     margin-top: 8px;
-    transition: background 0.5s ease;
-  }
-
-  .bpm-heart {
-    position: absolute;
-    top: 26px;
-    left: 140px;
-    width: 24px;
-    height: 24px;
-  }
-
-  .bpm-heart svg {
-    width: 24px;
-    height: 24px;
-    fill: var(--text-muted);
-    animation: heart-beat 1s ease-in-out infinite;
-  }
-
-  @keyframes heart-beat {
-    0%, 100% { transform: scale(1); fill: var(--text-muted); }
-    15% { transform: scale(1.25); fill: #f87171; }
-    30% { transform: scale(1); fill: var(--text-muted); }
-    45% { transform: scale(1.15); fill: #f87171; }
-    60% { transform: scale(1); fill: var(--text-muted); }
+    transition: background 0.5s ease, width 0.3s ease;
+    width: 0;
   }
 
   .divider {
@@ -187,20 +162,27 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     margin-top: 14px;
+    position: relative;
   }
 
-  .status-dot {
-    width: 6px;
-    height: 6px;
+  .pulse-ring {
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
-    background: var(--offline);
-    transition: background 0.4s;
+    background: var(--green);
+    opacity: 0;
+    flex-shrink: 0;
   }
 
-  .status-dot.online {
-    background: var(--green);
+  .pulse-ring.active {
+    animation: ring-out 0.5s ease-out;
+  }
+
+  @keyframes ring-out {
+    0%   { opacity: 0.9; transform: scale(1); }
+    100% { opacity: 0;   transform: scale(2); }
   }
 
   .status-text {
@@ -218,17 +200,9 @@
 </head>
 <body>
 <div class="card">
-  <div class="pulse-ring" id="pulseRing"></div>
-
   <div class="bpm-row">
     <div class="bpm-number" id="bpmNum">--</div>
   </div>
-  <div class="bpm-heart">
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-    </svg>
-  </div>
-  <div class="zone-underline" id="zoneUnderline"></div>
 
   <div class="divider"></div>
 
@@ -243,7 +217,7 @@
   </div>
 
   <div class="status-row">
-    <div class="status-dot" id="statusDot"></div>
+    <div class="pulse-ring" id="pulseRing"></div>
     <div class="status-text" id="statusText">offline</div>
   </div>
 </div>
@@ -257,7 +231,6 @@
   const bpmEl     = document.getElementById('bpmNum');
   const stressEl  = document.getElementById('stressNum');
   const stressBar = document.getElementById('stressBar');
-  const dotEl     = document.getElementById('statusDot');
   const textEl    = document.getElementById('statusText');
   const ringEl    = document.getElementById('pulseRing');
   const zoneEl    = document.getElementById('zoneUnderline');
@@ -294,6 +267,7 @@
 
     if (bpm != null) {
       zoneEl.style.background = bpmZoneColor(bpm);
+      zoneEl.style.width = bpmEl.offsetWidth + 'px';
     }
 
     if (hrv != null) {
@@ -306,13 +280,11 @@
     }
 
     const online = !stale && bpm != null;
-    dotEl.classList.toggle('online', online);
     textEl.classList.toggle('online', online);
     textEl.textContent = online ? 'online' : 'offline';
   }
 
   function setOffline() {
-    dotEl.classList.remove('online');
     textEl.classList.remove('online');
     textEl.textContent = 'offline';
     bpmEl.classList.add('stale');
