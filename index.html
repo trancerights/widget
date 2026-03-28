@@ -4,9 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HR Widget</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+    font-family: 'Seagram';
+    src: url('seagram-tfb.ttf') format('truetype');
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -30,7 +33,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Seagram', serif;
   }
 
   .card {
@@ -47,7 +50,6 @@
     user-select: none;
   }
 
-  /* subtle inner glow that pulses with heartbeat */
   .card::before {
     content: '';
     position: absolute;
@@ -57,7 +59,6 @@
     pointer-events: none;
   }
 
-  /* pulse ring */
   .pulse-ring {
     position: absolute;
     top: 28px;
@@ -78,7 +79,6 @@
     100% { opacity: 0;   transform: scale(3.5); }
   }
 
-  /* ---- BPM section ---- */
   .bpm-row {
     display: flex;
     align-items: baseline;
@@ -87,7 +87,7 @@
   }
 
   .bpm-number {
-    font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+    font-family: 'Seagram', serif;
     font-size: 88px;
     letter-spacing: -1px;
     color: var(--text-primary);
@@ -100,22 +100,32 @@
   }
 
   .bpm-unit {
-    font-size: 13px;
-    font-weight: 300;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
     padding-bottom: 4px;
   }
 
-  /* ---- divider ---- */
+  .bpm-unit svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--text-muted);
+    animation: heart-beat 1s ease-in-out infinite;
+  }
+
+  @keyframes heart-beat {
+    0%, 100% { transform: scale(1); }
+    15% { transform: scale(1.2); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.15); }
+  }
+
   .divider {
     height: 1px;
     background: var(--border);
     margin: 14px 0 12px;
   }
 
-  /* ---- stress row ---- */
   .stress-row {
     display: flex;
     align-items: center;
@@ -124,7 +134,6 @@
 
   .stress-label {
     font-size: 10px;
-    font-weight: 400;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--text-muted);
@@ -137,7 +146,7 @@
   }
 
   .stress-score {
-    font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+    font-family: 'Seagram', serif;
     font-size: 28px;
     color: var(--stress-color);
     letter-spacing: 0.5px;
@@ -145,13 +154,6 @@
     line-height: 1;
   }
 
-  .stress-denom {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-weight: 300;
-  }
-
-  /* stress bar */
   .stress-bar-track {
     width: 100%;
     height: 3px;
@@ -169,7 +171,6 @@
     width: 0%;
   }
 
-  /* ---- status ---- */
   .status-row {
     display: flex;
     justify-content: flex-end;
@@ -209,16 +210,19 @@
 
   <div class="bpm-row">
     <div class="bpm-number" id="bpmNum">--</div>
-    <div class="bpm-unit">bpm</div>
+    <div class="bpm-unit">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    </div>
   </div>
 
   <div class="divider"></div>
 
   <div class="stress-row">
-    <div class="stress-label">Stress</div>
+    <div class="stress-label">HRV</div>
     <div class="stress-score-wrap">
       <div class="stress-score" id="stressNum">--</div>
-      <div class="stress-denom">/100</div>
     </div>
   </div>
   <div class="stress-bar-track">
@@ -244,17 +248,11 @@
   const textEl    = document.getElementById('statusText');
   const ringEl    = document.getElementById('pulseRing');
 
-  let lastBpm = null;
   let staleTimer = null;
 
-  function hrvToStress(hrv) {
-    const clamped = Math.max(0, Math.min(100, hrv));
-    return Math.max(1, Math.min(100, Math.round(100 - clamped)));
-  }
-
-  function stressColor(score) {
-    if (score <= 33) return 'var(--green)';
-    if (score <= 66) return 'var(--amber)';
+  function hrvColor(hrv) {
+    if (hrv > 50) return 'var(--green)';
+    if (hrv >= 30) return 'var(--amber)';
     return 'var(--red)';
   }
 
@@ -265,21 +263,21 @@
   }
 
   function render(data) {
-    const bpm    = data.bpm;
-    const stress = data.hrv != null ? hrvToStress(data.hrv) : null;
-    const stale  = data.stale === true;
+    const bpm   = data.bpm;
+    const hrv   = data.hrv;
+    const stale = data.stale === true;
 
     if (!stale) triggerPulse();
-    lastBpm = bpm;
     bpmEl.textContent = bpm ?? '--';
     bpmEl.classList.toggle('stale', stale);
 
-    if (stress != null) {
-      const color = stressColor(stress);
-      stressEl.textContent = stress;
+    if (hrv != null) {
+      const color = hrvColor(hrv);
+      stressEl.textContent = hrv.toFixed(1) + 'ms';
       stressEl.style.color = color;
       stressBar.style.background = color;
-      stressBar.style.width = stress + '%';
+      const pct = Math.min(100, Math.max(0, (hrv / 80) * 100));
+      stressBar.style.width = pct + '%';
     }
 
     const online = !stale && bpm != null;
