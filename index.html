@@ -342,7 +342,9 @@
       if (!res.ok) throw new Error(res.status);
       const data = await res.json();
       clearTimeout(staleTimer);
-      if (data.stale) throw new Error('stale');
+      // API reports staleness via seconds_ago (data is old when you pulled it); treat
+      // >12s-old or explicit stale flag as "device unavailable" and fall back to Pulsoid.
+      if ((data.seconds_ago != null && data.seconds_ago > 12) || (data.stale === true)) throw new Error('stale');
       // fresh device data -> primary source
       closePulsoid();
       render(data);
