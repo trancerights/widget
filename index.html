@@ -259,6 +259,37 @@
 
   let staleTimer = null;
 
+  // Secondary heart-rate source: Pulsoid realtime (public read token via getWidget RPC).
+  const PULSOID_WS = 'wss://dev.pulsoid.net/api/v1/data/real_time?access_token=4e80b574-848b-427b-b5a8-2addd96f5ddb&response_mode=legacy_json';
+  let psWs = null, psBpm = null, psLast = 0, usingPulsoid = false;
+
+  function openPulsoid() {
+    if (psWs && (psWs.readyState === 0 || psWs.readyState === 1)) return;
+    try {
+      psWs = new WebSocket(PULSOID_WS);
+      psWs.onmessage = (e) => {
+        try {
+          const j = JSON.parse(typeof e.data === 'string' ? e.data : '');
+          const hr = j && j.data && j.data.heartRate;
+          if (hr) { psBpm = hr; psLast = Date.now(); }
+        } catch (_) {}
+      };
+      psWs.onclose = () => { psWs = null; };
+      psWs.onerror = () => { psWs = null; };
+    } catch (_) { psWs = null; }
+  }
+  function closePulsoid() {
+    if (psWs) { try { psWs.close(); } catch (_) {} }
+    psWs = null; psBpm = null; usingPulsoid = false;
+  }
+  function renderPulsoid() {
+    if (psBpm == null) { setOffline(); return; }
+    usingPulsoid = true;
+    render({ bpm: psBpm, hrv: null, stale: false, source: 'pulsoid' });
+    textEl.textContent = 'pulsoid';
+    textEl.classList.add('online');
+  }
+
   function hrvColor(hrv) {
     if (hrv > 50) return 'var(--green)';
     if (hrv >= 30) return 'var(--amber)';
@@ -296,7 +327,7 @@
 
     const online = !stale && bpm != null;
     textEl.classList.toggle('online', online);
-    textEl.textContent = online ? 'online' : 'offline';
+    if (data.source !== 'pulsoid') textEl.textContent = online ? 'online' : 'offline';
   }
 
   function setOffline() {
@@ -310,14 +341,19 @@
       const res = await fetch(BASE + '/', { cache: 'no-store' });
       if (!res.ok) throw new Error(res.status);
       const data = await res.json();
-      render(data);
       clearTimeout(staleTimer);
-      if (!data.stale) {
-        staleTimer = setTimeout(setOffline, STALE_AFTER_MS);
-      }
+      if (data.stale) throw new Error('stale');
+      // fresh device data -> primary source
+      closePulsoid();
+      render(data);
+      staleTimer = setTimeout(setOffline, STALE_AFTER_MS);
+      return;
     } catch {
       setOffline();
     }
+    // device unavailable/stale -> secondary source (Pulsoid)
+    openPulsoid();
+    renderPulsoid();
   }
 
   poll();
